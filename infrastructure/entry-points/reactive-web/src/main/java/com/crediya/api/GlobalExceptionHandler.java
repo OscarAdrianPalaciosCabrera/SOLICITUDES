@@ -2,9 +2,12 @@ package com.crediya.api;
 
 import com.crediya.usecase.exceptions.BusinessExceptions;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
+import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
@@ -37,7 +40,7 @@ public class GlobalExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(Map.of(
                         "error", "Invalid input",
-                        "message", "Invalid data format: some fields with invalid format cannot be deserialized.",
+                        "message", ex.getReason(),
                         "status", 400,
                         "timestamp", LocalDateTime.now()
 
@@ -64,4 +67,5 @@ public class GlobalExceptionHandler {
                         "timestamp", LocalDateTime.now()
                 ));
     }
+
 }

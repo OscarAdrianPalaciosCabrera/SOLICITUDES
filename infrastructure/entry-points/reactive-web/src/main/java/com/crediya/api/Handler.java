@@ -20,9 +20,12 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+
 import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -78,18 +81,42 @@ public class Handler {
     }
 
     public Mono<ServerResponse> listenGETLoanRequests(ServerRequest request) {
-        int page = Integer.parseInt(request.queryParam("page").orElse("0"));
-        int size = Integer.parseInt(request.queryParam("size").orElse("10"));
+        int page;
+        int size;
 
-        LOGGER.info("Consultando solicitudes pendientes/rechazadas/manual - page={}, size={}", page, size);
+        try{
+            page = Integer.parseInt(request.queryParam("page").orElse("0"));
+            size = Integer.parseInt(request.queryParam("size").orElse("10"));
+        }catch (NumberFormatException ex){
+            return globalExceptionHandler.handleDeserializationException(
+                    new ServerWebInputException("The page and size parameters only admit integer numbers"));
+        }
+
+        List<Integer> states;
+
+        try {
+            states = request.queryParam("states")
+                    .map(val -> Arrays.stream(val.split(","))
+                            .map(String::trim)
+                            .map(Integer::parseInt) // Puede lanzar NumberFormatException
+                            .toList())
+                    .orElse(List.of(1, 2, 3));
+        } catch (NumberFormatException ex) {
+            return globalExceptionHandler.handleDeserializationException(
+                    new ServerWebInputException("El states parameter only admit Integer numbers"));
+        }
+
+
+        LOGGER.info("Consultando solicitudes con estados={} - page={}, size={}", states, page, size);
 
         return ServerResponse.ok()
                 .body(
-                        getPendingLoanRequestsUseCase.execute(page, size)
+                        getPendingLoanRequestsUseCase.execute(page, size, states)
                                 .doOnNext(dto -> LOGGER.debug("Solicitud encontrada: {}", dto))
                                 .doOnError(error -> LOGGER.error("Error al consultar solicitudes", error)),
                         DomainLoanRequestsDTO.class
                 )
+
                 .onErrorResume(ex -> {
                     LOGGER.error("Error controlado: {}", ex.getMessage());
                     return ServerResponse.status(500)

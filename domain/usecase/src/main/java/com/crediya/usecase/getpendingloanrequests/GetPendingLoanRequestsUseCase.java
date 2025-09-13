@@ -22,12 +22,11 @@ public class GetPendingLoanRequestsUseCase{
     private final LoanRequestRepository loanRequestRepository;
     private final LoanTypeRepository loanTypeRepository;
     private final ApplicantRepository applicantRepository;
-    private static final List<Integer> VALID_STATES = List.of(1,2,3);
     private static final Logger LOGGER = Logger.getLogger(GetPendingLoanRequestsUseCase.class.getName());
 
-    public Flux<DomainLoanRequestsDTO> execute(int page, int size){
-        LOGGER.info("Entering to execute mehtod");
-    return  loanRequestRepository.findByStateIn(VALID_STATES)
+    public Flux<DomainLoanRequestsDTO> execute(int page, int size, List<Integer> states){
+        LOGGER.info("Entering to execute mehtod with States: " + states);
+    return  loanRequestRepository.findByStateIn(states)
             .skip((long) page * size)
             .take(size)
             .flatMap(this::toDto);
