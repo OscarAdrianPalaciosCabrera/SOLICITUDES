@@ -16,10 +16,11 @@ public class RegisterLoanRequestUseCase {
     private static final Logger LOGGER = Logger.getLogger(RegisterLoanRequestUseCase.class.getName());
 
 
-    public Mono<LoanRequest> saveLoanRequest(LoanRequest loanRequest){
+    public Mono<LoanRequest> saveLoanRequest(LoanRequest loanRequest, String emailLoggedClient){
         LOGGER.info("Entering RegisterLoanRequestUseCase  - saveLoanRequest method");
         return validationsLoanApplicationUseCase.existingLoanType(loanRequest.getLoanType())
                 .then(validationsLoanApplicationUseCase.existingApplicant(loanRequest.getIdentityDocumentApplicant()))
+                .then(validationsLoanApplicationUseCase.sameUser(loanRequest.getIdentityDocumentApplicant(), emailLoggedClient))
                 .then(loanApplicationRepository.saveLoanRequest(loanRequest));
     }
 }

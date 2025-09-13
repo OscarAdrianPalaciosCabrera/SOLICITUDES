@@ -12,5 +12,6 @@ public class LoanTypeData {
     @Id
     private String id;
     private String loanType;
+    private Double interestRate;
 
 }

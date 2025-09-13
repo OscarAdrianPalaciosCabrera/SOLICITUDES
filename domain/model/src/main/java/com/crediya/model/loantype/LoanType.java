@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 public class LoanType {
 
     private String loanType;
+    private Double interestRate;
 
 }
 

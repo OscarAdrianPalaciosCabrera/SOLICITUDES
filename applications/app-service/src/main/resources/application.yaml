@@ -16,6 +16,8 @@ spring:
     add-properties: false
   profiles:
     include: null
+jwt:
+  secret: 1ADDFHEUKQ718327ajdhdj28aueyrhdf74k
 management:
   endpoints:
     web:

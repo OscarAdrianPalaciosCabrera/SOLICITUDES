@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 @Builder(toBuilder = true)
 public class ApplicantRequest {
-    private String identityDocument;
+    private String identityDocumentApplicant;
 }

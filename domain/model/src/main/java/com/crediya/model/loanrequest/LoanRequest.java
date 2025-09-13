@@ -24,9 +24,9 @@ public class LoanRequest {
     private String loanType;
     private int state = 1;
 
-    public static LoanRequest create(BigDecimal amount, String identityDocumentApplicant, Double timeLimitm, String loanType, int state ){
+    public static LoanRequest create(BigDecimal amount, String identityDocumentApplicant, Double timeLimit, String loanType, int state ){
         LOGGER.info("Entering to create LoanRequest method in Model");
-        return new LoanRequest(amount, identityDocumentApplicant, timeLimitm, loanType, state);
+        return new LoanRequest(amount, identityDocumentApplicant, timeLimit, loanType, state);
     }
 
 }

@@ -28,3 +28,5 @@ include ':kafka-producer'
 project(':kafka-producer').projectDir = file('./infrastructure/driven-adapters/kafka-producer')
 include ':rest-consumer'
 project(':rest-consumer').projectDir = file('./infrastructure/driven-adapters/rest-consumer')
+include ':secutiry'
+project(':secutiry').projectDir = file('./infrastructure/driven-adapters/secutiry')

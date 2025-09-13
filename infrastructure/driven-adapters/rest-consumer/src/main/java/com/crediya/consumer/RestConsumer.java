@@ -1,6 +1,7 @@
 package com.crediya.consumer;
-
+import com.crediya.model.applicant.Applicant;
 import com.crediya.model.applicant.gateways.ApplicantRepository;
+import com.crediya.usecase.exceptions.BusinessExceptions;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -8,18 +9,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
-
 public class RestConsumer implements ApplicantRepository{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicantRestConsumerAdapter.class);
     private final WebClient client;
-
 
     // these methods are an example that illustrates the implementation of WebClient.
     // You should use the methods that you implement from the Gateway from the domain.
@@ -56,33 +54,46 @@ public class RestConsumer implements ApplicantRepository{
     }*/
 
     @CircuitBreaker(name = "applicantGet", fallbackMethod = "fallbackApplicantExists")
-    public Mono<ApplicantResponse>getApplicantByIdentityDocument(String identityDocument){
-        LOGGER.debug("Entering to getApplicantByIdentityDocument method - identityDocument: {}", identityDocument);
+    public Mono<ApplicantResponse>getApplicantByIdentityDocument(String identityDocumentApplicant){
+        LOGGER.debug("Entering to getApplicantByIdentityDocument method - identityDocument: {}", identityDocumentApplicant);
         ApplicantRequest request = ApplicantRequest.builder()
-                .identityDocument(identityDocument)
+                .identityDocumentApplicant(identityDocumentApplicant)
                 .build();
-        return  client.post()
+        return client.post()
                 .uri("/api/v1/usuarios/existingByIdentityDocument")
                 .bodyValue(request)
                 .retrieve()
-                .onStatus(HttpStatus.NOT_FOUND::equals, resp -> Mono.empty()) // 🔥 Manejo 404
-                .bodyToMono(ApplicantResponse.class)
-                .doOnNext(response -> System.out.println("Respuesta de ms-usuarios: " + response));
-
+                .onStatus(status -> status.is4xxClientError(), response -> {
+                    if (response.statusCode().equals(HttpStatus.NOT_FOUND)) {
+                        return Mono.empty(); // Usuario no encontrado
+                    } else if (response.statusCode().equals(HttpStatus.CONFLICT)) {
+                        return Mono.error(new BusinessExceptions(
+                                "Users can only create loan applications for themselves, not for other users. Logged user doesn't match the request user."));
+                    }
+                    return Mono.error(new BusinessExceptions(
+                            "Error calling ms-users: " + response.statusCode()));
+                })
+                .bodyToMono(ApplicantResponse.class);
     }
 
-    public Mono<ApplicantResponse> fallbackApplicantExists(String identityDocument, Throwable ex){
-        LOGGER.debug("Entering to fallbackApplicantExists - identityDocument: {}, exception: {}", identityDocument, ex);
-        ApplicantResponse response = new ApplicantResponse();
-        response.setIdentityDocument(identityDocument);
-        return Mono.just(response);
+    public Mono<ApplicantResponse> fallbackApplicantExists(String identityDocumentApplicant, Throwable ex){
+        LOGGER.warn("Fallback triggered for identityDocument {}: {}", identityDocumentApplicant, ex.getMessage());
+        return Mono.error(new BusinessExceptions("Cannot fetch applicant at the moment, try again later"));
     }
+
 
     @Override
-    public Mono<Boolean> existsByIdentityDocument(String identityDocument) {
-        LOGGER.debug("Entering to existsByIdentityDocument method - identityDocument: {}", identityDocument);
-        return getApplicantByIdentityDocument(identityDocument)
-                .map(response -> response != null)
-                .defaultIfEmpty(false);
+    public Mono<Applicant> findByIdentityDocumentApplicant(String identityDocumentApplicant) {
+        LOGGER.debug("Entering to existsByIdentityDocument method - identityDocument: {}", identityDocumentApplicant);
+        return getApplicantByIdentityDocument(identityDocumentApplicant)
+                .map(applicantResponse -> {
+                    Applicant applicant = new Applicant();
+                    applicant.setIdentityDocumentApplicant(applicantResponse.getIdentityDocumentApplicant());
+                    applicant.setEmail(applicantResponse.getEmail());
+                    applicant.setName(applicantResponse.getName());
+                    applicant.setBaseSalary(applicantResponse.getBaseSalary());
+                    return applicant;
+                });
     }
+    
 }
