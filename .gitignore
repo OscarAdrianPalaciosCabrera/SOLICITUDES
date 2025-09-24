@@ -328,6 +328,23 @@ gradle-app.setting
 ### Gradle Patch ###
 **/build/
 
+# ======================
+# Docker
+# ======================
+docker-compose.override.yml
+.docker/
+*.pid
+
+# ======================
+# Env / Secrets
+# ======================
+.env
+*.env
+*.secret
+*.key
+*.pem
+*.p12
+
 # End of https://www.gitignore.io/api/java,linux,macos,sonar,gradle,windows,eclipse,sonarqube,sublimetext,intellij+all,visualstudiocode
 
 # HPROF

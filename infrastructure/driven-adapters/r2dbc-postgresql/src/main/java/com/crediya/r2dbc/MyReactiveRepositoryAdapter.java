@@ -12,6 +12,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
@@ -45,5 +46,11 @@ implements LoanRequestRepository {
         return repository.findByStateIn(state)
                 .map(this::toEntity);
     }
+
+    @Override
+    public Mono<LoanRequest> findByIdLoan(UUID idLoan) {
+        return repository.findById(String.valueOf(idLoan))
+                .map(this::toEntity);
+        }
 
 }

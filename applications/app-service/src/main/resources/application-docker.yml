@@ -4,16 +4,17 @@ spring:
   application:
     name: "Requests-ms"
   r2dbc:
-    url: "r2dbc:postgresql://localhost:5432/crediya_loans"
-    username: "postgres"
-    password: "admin"
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://db-requests:5432/requests}
+    username: "req_user"
+    password: "req_pass"
   devtools:
     add-properties: false
   security:
     oauth2:
       resourceserver:
         jwt:
-          secret-key: "1ADDFHEUKQ718327ajdhdj28aueyrhdf74k"
+          secret-key: 1ADDFHEUKQ718327ajdhdj28aueyrhdf74k
+
 management:
   endpoints:
     web:
@@ -26,15 +27,18 @@ management:
   health:
     circuitbreakers:
       enabled: true
+
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
 adapter:
   restconsumer:
     timeout: 5000
-    url: "http://localhost:8080"
+    url: "http://autenticacion:8080"
   sqs:
     region: us-east-1
     queueUrl: https://sqs.us-east-1.amazonaws.com/825351789212/loan-requests.fifo
+
 
 resilience4j:
   circuitbreaker:

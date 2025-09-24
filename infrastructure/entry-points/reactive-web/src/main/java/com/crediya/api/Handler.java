@@ -1,12 +1,14 @@
 package com.crediya.api;
 
 import com.crediya.api.dto.CreateLoanRequestDTO;
+import com.crediya.api.dto.UpdateLoanStateDto;
 import com.crediya.api.mapper.RequestDtoMapper;
 import com.crediya.model.loanrequest.LoanRequest;
 import com.crediya.usecase.exceptions.BusinessExceptions;
 import com.crediya.model.loanrequest.DomainLoanRequestsDTO;
 import com.crediya.usecase.getpendingloanrequests.GetPendingLoanRequestsUseCase;
 import com.crediya.usecase.registerloanrequest.RegisterLoanRequestUseCase;
+import com.crediya.usecase.updateloanstate.UpdateLoanStateUseCase;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
@@ -26,6 +28,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Component
@@ -34,6 +37,7 @@ public class Handler {
 
     private final RegisterLoanRequestUseCase registerLoanRequestUseCase;
     private final GetPendingLoanRequestsUseCase getPendingLoanRequestsUseCase;
+    private final UpdateLoanStateUseCase updateLoanStateUseCase;
     private final RequestDtoMapper mapper;
     private final Validator validator;
     private final GlobalExceptionHandler globalExceptionHandler;
@@ -116,11 +120,26 @@ public class Handler {
                                 .doOnError(error -> LOGGER.error("Error al consultar solicitudes", error)),
                         DomainLoanRequestsDTO.class
                 )
+                .onErrorResume(BusinessExceptions.class, globalExceptionHandler::handleBusinessException)
+                .onErrorResume(Throwable.class, globalExceptionHandler::handleGenericException);
+    }
+    public Mono<ServerResponse> listenPutLoanRequests(ServerRequest serverRequest) {
+        LOGGER.debug("Entering to listenPutLoanRequests - serverRequest: {}", serverRequest);
 
-                .onErrorResume(ex -> {
-                    LOGGER.error("Error controlado: {}", ex.getMessage());
-                    return ServerResponse.status(500)
-                            .bodyValue("{\"message\": \"No fue posible obtener las solicitudes\"}");
-                });
+        return serverRequest.bodyToMono(UpdateLoanStateDto.class)
+                .flatMap(dto -> {
+                    LOGGER.info("Updating loan request - id: {}, newState: {}", dto.loanRequestId(), dto.newState());
+
+                    return updateLoanStateUseCase.updateState(dto.loanRequestId(), dto.newState())
+                            .flatMap(updatedLoan -> {
+                                LOGGER.info("Loan request updated successfully - id: {}", dto.loanRequestId());
+                                return ServerResponse.ok()
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .bodyValue(updatedLoan);
+                            })
+                            .switchIfEmpty(ServerResponse.notFound().build());
+                })
+                .onErrorResume(BusinessExceptions.class, globalExceptionHandler::handleBusinessException)
+                .onErrorResume(Throwable.class, globalExceptionHandler::handleGenericException);
     }
 }

@@ -1,6 +1,7 @@
 package com.crediya.r2dbc;
 
 import com.crediya.model.applicant.Applicant;
+import com.crediya.model.loanrequest.LoanRequest;
 import com.crediya.r2dbc.data.LoanRequestData;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;

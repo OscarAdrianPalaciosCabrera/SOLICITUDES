@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,7 +17,7 @@ import java.math.BigDecimal;
 public class LoanRequestData {
 
     @Id
-    private String id;
+    private UUID id;
     private BigDecimal amount;
     private String identityDocumentApplicant;
     private Double timeLimit;

@@ -11,6 +11,7 @@ public interface RequestDtoMapper {
     default LoanRequest toModel(CreateLoanRequestDTO dto){
         if(dto == null) return null;
         return  LoanRequest.create(
+                dto.id(),
                 dto.amount(),
                 dto.identityDocumentApplicant(),
                 dto.timeLimit(),

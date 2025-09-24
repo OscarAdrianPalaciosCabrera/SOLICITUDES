@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(Map.of(
                         "error", "Internal server error",
-                        "message", ex.getMessage(),
+                        "message", ex,
                         "status", 500,
                         "timestamp", LocalDateTime.now()
                 ));
