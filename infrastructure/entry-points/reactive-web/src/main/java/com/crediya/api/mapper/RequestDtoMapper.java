@@ -16,6 +16,7 @@ public interface RequestDtoMapper {
                 dto.identityDocumentApplicant(),
                 dto.timeLimit(),
                 dto.loanType(),
+                dto.autoValidation(),
                 dto.state()
         );
     }

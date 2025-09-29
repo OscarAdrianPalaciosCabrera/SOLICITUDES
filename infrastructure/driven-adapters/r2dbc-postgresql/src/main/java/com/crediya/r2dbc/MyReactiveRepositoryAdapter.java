@@ -51,6 +51,13 @@ implements LoanRequestRepository {
     public Mono<LoanRequest> findByIdLoan(UUID idLoan) {
         return repository.findById(String.valueOf(idLoan))
                 .map(this::toEntity);
-        }
+    }
+
+    @Override
+    public Flux<LoanRequest> findByIdentityDocumentAndStateIn(String identityDocumentApplicant, List<Integer> states) {
+        return repository.findByIdentityDocumentApplicantAndStateIn(identityDocumentApplicant, states)
+                .map(data -> mapper.map(data, LoanRequest.class));
+    }
+
 
 }

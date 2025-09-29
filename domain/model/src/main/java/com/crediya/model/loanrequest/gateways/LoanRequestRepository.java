@@ -13,6 +13,7 @@ public interface LoanRequestRepository {
     Mono<LoanRequest> saveLoanRequest (LoanRequest loanRequest);
     Flux<LoanRequest> findByStateIn(List<Integer> state);
     Mono<LoanRequest> findByIdLoan(UUID id);
+    Flux<LoanRequest> findByIdentityDocumentAndStateIn(String identityDocument, List <Integer> states);
     //Flux<DomainLoanRequestsDTO> getPendingLoanRequests(int page, int size);
 
 }

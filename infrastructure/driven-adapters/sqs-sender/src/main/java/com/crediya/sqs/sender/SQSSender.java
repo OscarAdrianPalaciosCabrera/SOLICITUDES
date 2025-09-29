@@ -1,5 +1,6 @@
 package com.crediya.sqs.sender;
 
+import com.crediya.model.loanrequest.CapacityCalculationPayLoad;
 import com.crediya.model.notificationmessage.NotificationMessage;
 import com.crediya.model.notificationmessage.gateways.NotificationMessageRepository;
 import com.crediya.sqs.sender.config.SQSSenderProperties;
@@ -11,7 +12,6 @@ import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonProcessingException;
 
 import java.util.UUID;
 
@@ -27,7 +27,6 @@ public class SQSSender implements NotificationMessageRepository {
 
     private SendMessageRequest buildRequest(String message) {
         return SendMessageRequest.builder()
-                .queueUrl(properties.queueUrl())
                 .messageBody(message)
                 .build();
     }
@@ -35,7 +34,7 @@ public class SQSSender implements NotificationMessageRepository {
     @Override
     public Mono<String> publish(NotificationMessage event) {
         SendMessageRequest request = SendMessageRequest.builder()
-                .queueUrl(properties.queueUrl())
+                .queueUrl(properties.queues().get("loanRequests"))
                 .messageBody(toJson(event))
                 .messageGroupId("loan-requests")
                 .messageDeduplicationId(UUID.randomUUID().toString())
@@ -49,11 +48,28 @@ public class SQSSender implements NotificationMessageRepository {
 
     }
 
-    private String toJson(NotificationMessage event) {
+    @Override
+    public Mono<Void> publish(CapacityCalculationPayLoad payLoad) {
+        SendMessageRequest request = SendMessageRequest.builder()
+                .queueUrl(properties.queues().get("autoVerification"))
+                .messageBody(toJson(payLoad))
+                .messageGroupId("autoverification-loan-requests")
+                .messageDeduplicationId(UUID.randomUUID().toString())
+                .build();
+
+        return Mono.fromFuture(() -> client.sendMessage(request))
+                .doOnNext(response -> log.info("Message sent to SQS - id: {}", response.messageId()))
+                .doOnError(err -> log.error("Error publishing to SQS", err))
+                .then(); // retorna Mono<Void>
+    }
+
+
+    private String toJson(Object object) {
         try {
-            return mapper.writeValueAsString(event);
+            return mapper.writeValueAsString(object);
         } catch (Exception e) {
             throw new IllegalStateException("Error serializing NotificationMessage", e);
         }
     }
+
 }

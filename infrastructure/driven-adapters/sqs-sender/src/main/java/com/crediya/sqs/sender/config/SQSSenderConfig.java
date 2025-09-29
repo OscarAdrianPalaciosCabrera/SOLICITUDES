@@ -47,6 +47,4 @@ public class SQSSenderConfig {
         }
         return null;
     }
-
-
 }

@@ -16,11 +16,14 @@ public record CreateLoanRequestDTO(
         BigDecimal amount,
 
         @NotNull(message="Some mandatory field can not be null")
-        Double timeLimit,
+        Integer timeLimit,
 
         @NotBlank(message="Some mandatory field can not be blank")
         @NotNull(message="Some mandatory field can not be null")
         String loanType,
+
+        @NotNull(message="Some mandatory field can not be null")
+        boolean autoValidation,
 
         int state
         ){

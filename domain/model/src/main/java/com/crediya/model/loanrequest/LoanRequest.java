@@ -1,5 +1,4 @@
 package com.crediya.model.loanrequest;
-import com.crediya.model.loantype.LoanType;
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,13 +21,14 @@ public class LoanRequest {
     private UUID id;
     private BigDecimal amount;
     private String identityDocumentApplicant;
-    private Double timeLimit;
+    private int timeLimit;
     private String loanType;
+    private Boolean autoValidation;
     private int state = 0;
 
-    public static LoanRequest create(UUID id, BigDecimal amount, String identityDocumentApplicant, Double timeLimit, String loanType, int state ){
+    public static LoanRequest create(UUID id, BigDecimal amount, String identityDocumentApplicant, int timeLimit, String loanType, Boolean autoValidation, int state ){
         LOGGER.info("Entering to create LoanRequest method in Model");
-        return new LoanRequest(id, amount, identityDocumentApplicant, timeLimit, loanType, state);
+        return new LoanRequest(id, amount, identityDocumentApplicant, timeLimit, loanType, autoValidation, state);
     }
 
 }

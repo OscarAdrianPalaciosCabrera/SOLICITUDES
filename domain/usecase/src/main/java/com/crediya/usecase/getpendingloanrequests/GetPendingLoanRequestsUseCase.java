@@ -33,7 +33,7 @@ public class GetPendingLoanRequestsUseCase{
 
     }
 
-    private Mono<DomainLoanRequestsDTO> toDto(LoanRequest request){
+    public Mono<DomainLoanRequestsDTO> toDto(LoanRequest request){
         LOGGER.info("Entering to toDTO mehtod - request: " + request);
         Mono<Applicant> applicantMono = applicantRepository.findByIdentityDocumentApplicant(request.getIdentityDocumentApplicant())
                 .doOnNext(applicant -> LOGGER.info("Applicant found: "+ applicant))
@@ -47,8 +47,19 @@ public class GetPendingLoanRequestsUseCase{
                     Applicant applicant = tuple.getT1();
                     LoanType loanType = tuple.getT2();
 
+                    BigDecimal i = BigDecimal.valueOf(loanType.getInterestRate()).multiply(BigDecimal.valueOf(0.01));
+                    int n = request.getTimeLimit();
+
+                    //Cuote=P⋅(1+i)n−1i(1+i)n  ==  Cuote= p(((i(1+i))^n)/((i+n)^-1))
+
+                    BigDecimal numerator = i.multiply((BigDecimal.ONE.add(i)).pow(n));
+                    BigDecimal denominator = ((BigDecimal.ONE.add(i)).pow(n)).subtract(BigDecimal.ONE);
+                    BigDecimal fraction = numerator.divide(denominator, 10, RoundingMode.HALF_UP);
+
                     BigDecimal monthlyAmount= request.getAmount()
-                            .divide(BigDecimal.valueOf(request.getTimeLimit()), RoundingMode.HALF_UP);
+                            .multiply(fraction)
+                            .setScale(2, RoundingMode.HALF_UP);
+
 
                     return  new DomainLoanRequestsDTO(
                             applicant.getEmail(),

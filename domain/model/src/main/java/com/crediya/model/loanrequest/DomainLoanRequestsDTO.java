@@ -1,6 +1,7 @@
 package com.crediya.model.loanrequest;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record DomainLoanRequestsDTO(String email, //user
                                     String name, //user
@@ -8,7 +9,7 @@ public record DomainLoanRequestsDTO(String email, //user
                                     String loanType, //loanType
 
                                     BigDecimal amount, //loanReq
-                                    Double timeLimit, //loanReq
+                                    int timeLimit, //loanReq
 
                                     Double interestRate, //loanType
 

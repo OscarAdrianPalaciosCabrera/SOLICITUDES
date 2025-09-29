@@ -1,13 +1,15 @@
 package com.crediya.usecase.validationsloanrequest;
-import com.crediya.model.applicant.Applicant;
 import com.crediya.model.applicant.gateways.ApplicantRepository;
-import com.crediya.model.loanrequest.LoanRequest;
+import com.crediya.model.loanrequest.DomainLoanRequestsDTO;
 import com.crediya.model.loanrequest.gateways.LoanRequestRepository;
 import com.crediya.model.loantype.gateways.LoanTypeRepository;
 import com.crediya.usecase.exceptions.BusinessExceptions;
+import com.crediya.usecase.getpendingloansforuser.GetUserPendingLoansUseCase;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 @RequiredArgsConstructor
@@ -16,6 +18,7 @@ public class ValidationsLoanRequestUseCase {
     private final LoanRequestRepository loanRequestRepository;
     private final LoanTypeRepository loanTypeRepository;
     //private final ApplicantCreatedEventRepository applicantCreatedEventRepository;
+    private final GetUserPendingLoansUseCase getUserPendingLoansUseCase;
     private final ApplicantRepository applicantRepository;
     private static final Logger LOGGER = Logger.getLogger(ValidationsLoanRequestUseCase.class.getName());
 
@@ -69,4 +72,12 @@ public class ValidationsLoanRequestUseCase {
                 })
                 .switchIfEmpty(Mono.error(new BusinessExceptions("Applicant not found")));
     }
+
+    public Flux<DomainLoanRequestsDTO> isAutoValidation(boolean autoValidate, String identityDocumentApplicant ){
+        if (autoValidate){
+            return getUserPendingLoansUseCase.excecute(identityDocumentApplicant, 0,100, List.of(1));
+        }
+        return Flux.empty();
+    }
+
 }

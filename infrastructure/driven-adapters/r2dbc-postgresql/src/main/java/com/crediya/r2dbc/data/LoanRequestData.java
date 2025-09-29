@@ -20,7 +20,8 @@ public class LoanRequestData {
     private UUID id;
     private BigDecimal amount;
     private String identityDocumentApplicant;
-    private Double timeLimit;
+    private int timeLimit;
     private String loanType;
+    private boolean autoValidation;
     private int state;
 }
